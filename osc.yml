@@ -1,0 +1,53 @@
+---
+# Find client for this release (matched by git branch name) and python version (matched by tox env).
+release: stable/newton
+python_version: 2.7
+debug: True
+# List of all clients
+clients:
+ - name: openstack
+   description: Basic set of openstack clients (glance, nova, cinder, keystone)
+ - name: aodh
+   description: Alarms and notifications API
+ - name: barbican
+   description: Key Manager Service API
+ - name: ceilometer
+   description: Telemetry API
+ - name: cloudkitty
+   description: Rating service API
+ - name: congress
+   description: Policy as a service API
+ - name: designate
+   description: DNS service API
+ - name: heat
+   description: Orchestration API
+ - name: ironic
+   description: Bare metal provisioning
+ - name: magnum
+   description: Container Infrastructure Management service API
+ - name: manila
+   description: Shared file systems API
+ - name: mistral
+   description: Workflow service API
+ - name: monasca
+   description: Monitoring API
+ - name: murano
+   description: Application catalog API
+ - name: neutron
+   description: Networking API
+ - name: sahara
+   description: Data Processing API
+ - name: searchlight
+   description: Indexing and Search API
+ - name: senlin
+   description: Clustering service API
+ - name: solum
+   description: Application development process API
+ - name: swift
+   description: Object Storage API
+ - name: tripleo
+   description: TripleO API
+ - name: trove
+   description: Database service API
+ - name: zaqar
+   description: Messaging and notification service API
