@@ -18,6 +18,8 @@
 #    under the License.
 
 import sys
+import os
+import shutil
 import logging
 
 if sys.version_info < (2, 7):
@@ -29,7 +31,22 @@ logging.basicConfig()
 logger.setLevel(logging.INFO)
 
 
-def parse_args():
+def _clean_dir(basepath, remove=False, create=True):
+    if os.path.exists(basepath):
+        for filename in os.listdir(basepath):
+            filepath = os.path.join(basepath, filename)
+            try:
+                shutil.rmtree(filepath)
+            except OSError:
+                os.remove(filepath)
+        if remove:
+            os.rmdir(basepath)
+
+    elif create:
+        os.makedirs(basepath)
+
+
+def _parse_args():
 
     import argparse
 
@@ -55,7 +72,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def download_tox_module(basepath, release, client):
+def _download_tox_module(basepath, release, client):
 
     import urllib
 
@@ -65,7 +82,7 @@ def download_tox_module(basepath, release, client):
         output.write(urllib.urlopen(url).read())
 
 
-def check_client_pv(basepath, client, py_version):
+def _check_client_pv(basepath, client, py_version):
     py_env = 'py'
     if '.' in py_version:
         py_env += py_version.replace('.', '')[0:2]
@@ -82,9 +99,8 @@ def check_client_pv(basepath, client, py_version):
     return py_env in config.envlist
 
 
-def render_dockerfile(basepath, python_version, release, clients):
+def _render_dockerfile(basepath, python_version, release, clients):
 
-    import os
     from jinja2 import Environment, FileSystemLoader
 
     template_dir = os.path.abspath('templates')
@@ -100,7 +116,7 @@ def render_dockerfile(basepath, python_version, release, clients):
         )
 
 
-def build_docker_image(basepath, python_version, release):
+def _build_docker_image(basepath, python_version, release):
     import subprocess
     tag = 'engapa/ocs:{}-{}-latest'.format(python_version, release.replace('/', '_'))
     subprocess.call(['docker', 'build', '-t', tag, basepath])
@@ -108,7 +124,7 @@ def build_docker_image(basepath, python_version, release):
 
 def main():
 
-    args = parse_args()
+    args = _parse_args()
 
     if args.config_file:
         import yaml
@@ -144,12 +160,14 @@ def main():
 
     basepath = "../build"
 
+    _clean_dir(basepath)
+
     cclients = []
 
     for client in clients:
         try:
-            download_tox_module(basepath, release, client)
-            if check_client_pv(basepath, client, python_version):
+            _download_tox_module(basepath, release, client)
+            if _check_client_pv(basepath, client, python_version):
                 cclients.append(client)
             else:
                 logger.error("Not found python env for {} client with version {}.", client, python_version)
@@ -158,8 +176,8 @@ def main():
             if not skip_failures:
                 sys.exit(1)
     if cclients:
-        render_dockerfile(basepath, python_version, release, cclients)
-        build_docker_image(basepath, python_version, release)
+        _render_dockerfile(basepath, python_version, release, cclients)
+        _build_docker_image(basepath, python_version, release)
 
 
 if __name__ == "__main__":
