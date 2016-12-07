@@ -99,19 +99,24 @@ def _check_client_pv(basepath, client, py_version):
     return py_env in config.envlist
 
 
-def _render_dockerfile(basepath, python_version, release, clients):
+def _render_templates(basepath, python_version, release, clients):
 
     from jinja2 import Environment, FileSystemLoader
 
     template_dir = os.path.abspath('templates')
     env = Environment(loader=FileSystemLoader(searchpath=template_dir))
-    template = env.get_template('Dockerfile.j2')
-    with open(basepath + '/Dockerfile', 'wb') as dockerfile:
-        dockerfile.write(
-            template.render(
-                python_version=python_version,
+    with open(basepath + '/requirements.txt', 'wb') as requirements:
+        requirements.write(
+            env.get_template('requirements.j2').render(
                 release=release,
                 clients=clients
+            )
+        )
+    with open(basepath + '/Dockerfile', 'wb') as dockerfile:
+        dockerfile.write(
+            env.get_template('Dockerfile.j2').render(
+                build_path=os.path.abspath(basepath),
+                python_version=python_version
             )
         )
 
@@ -176,7 +181,7 @@ def main():
             if not skip_failures:
                 sys.exit(1)
     if cclients:
-        _render_dockerfile(basepath, python_version, release, cclients)
+        _render_templates(basepath, python_version, release, cclients)
         _build_docker_image(basepath, python_version, release)
 
 

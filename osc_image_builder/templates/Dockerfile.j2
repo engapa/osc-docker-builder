@@ -1,8 +1,9 @@
 FROM python:{{python_version}}
 MAINTAINER Enrique Garcia Pablos <engapa@gmail.com>
 
-RUN pip install -U pip
+ADD requirements.txt /requirements.txt
 
-{%- for client in clients %}
-RUN pip install -U git+https://github.com/openstack/python-{{client}}client@{{release}}#egg=python-{{client}}client
-{%- endfor %}
+RUN pip install -U pip
+RUN pip install -r requirements.txt
+
+
