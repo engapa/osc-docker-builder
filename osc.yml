@@ -4,6 +4,7 @@ release: stable/newton
 python_version: 2.7
 skip-fails: False
 verbose: True
+build_path: /tmp/osc-docker-builder
 # List of all clients
 clients:
  - name: openstack

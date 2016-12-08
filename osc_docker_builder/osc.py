@@ -36,35 +36,36 @@ if sys.version_info < (2, 7):
     sys.exit("This script requires Python 2.7 or newer!")
 
 
-logger = logging.getLogger("OSC-docker")
+LOG = logging.getLogger("osc-builder")
 logging.basicConfig()
-logger.setLevel(logging.INFO)
+LOG.setLevel(logging.INFO)
 
-BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')
+BUILD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')
 
 
-def __clean_dir(remove=False, create=True):
+def clean_build_dir(build_path, remove=False, create=True):
     """
     Clean build directory
+    :param build_path: Build path
     :param remove: Remove root build directory, by default False
     :param create: Create root build directory, by default True
     :return: void
     """
-    if os.path.exists(BASE_PATH):
-        for filename in os.listdir(BASE_PATH):
-            filepath = os.path.join(BASE_PATH, filename)
+    if os.path.exists(build_path):
+        for filename in os.listdir(build_path):
+            filepath = os.path.join(build_path, filename)
             try:
                 shutil.rmtree(filepath)
             except OSError:
                 os.remove(filepath)
         if remove:
-            os.rmdir(BASE_PATH)
+            os.rmdir(build_path)
 
     elif create:
-        os.makedirs(BASE_PATH)
+        os.makedirs(build_path)
 
 
-def __parse_args():
+def parse_args():
     """
     Parses args
     :return: parsed args
@@ -74,6 +75,8 @@ def __parse_args():
         prog="ocs",
         description="Build a docker image with all Openstack clients"
                     " that you want for a specific upstream branch and python version")
+    parser.add_argument('-bp', '--build-path', dest='build_path',
+                        help='The build path where files are written.')
     parser.add_argument('-f', '--config-file', dest='config_file',
                         help='A YAML config file.')
     parser.add_argument('-pv', '--python-version', dest='python_version',
@@ -92,7 +95,7 @@ def __parse_args():
     return parser.parse_args()
 
 
-def __download_docker_image_base(python_version):
+def download_docker_image_base(python_version):
     """
     Download docker image base
     :param python_version: python version
@@ -101,35 +104,35 @@ def __download_docker_image_base(python_version):
     child = subprocess.Popen(['docker', 'pull', 'python:{}'.format(python_version)],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = child.communicate()
-    logger.debug(output)
+    LOG.debug(output)
     if error and child.returncode != 0:
-        logger.error(error)
+        LOG.error(error)
         raise SystemExit(
             "Unavailable to download docker image for python version {}".format(python_version))
 
 
-def __download_tox_module(client_url):
+def download_tox_module(args):
     """
     Download tox.ini file from openstack client
-    :param client_url: a pair client name and url
+    :param args: client_name, url ,build path
     :return: void, create a <client>-tox.ini file into build directory
     """
-
-    client, url = client_url
+    client_name, url, build_path = args
     start_time = time.time()
     fname, info = urllib.urlretrieve(url,
-                                     filename='{}/{}-tox.ini'.format(BASE_PATH, client))
+                                     filename='{}/{}-tox.ini'.format(build_path, client_name))
     end_time = time.time()
-    logger.debug(" Downloaded file : %s, size : %s bytes, time: %s",
-                 fname, info.get('content-length'),  end_time - start_time)
+    LOG.debug(" Downloaded file : %s, size : %s bytes, time: %s",
+              fname, info.get('content-length'), end_time - start_time)
 
 
-def __check_client_pv(client_name, py_version, skip_fails):
+def check_client_pv(client_name, py_version, skip_fails, build_path):
     """
     Matches python version with tox env
     :param client_name: name of openstack client
     :param py_version: python version
     :param skip_fails: skip fails for this client and continue
+    :param build_path: Build path
     :return: True if matches, False in other case
     """
     py_env = 'py'
@@ -140,7 +143,7 @@ def __check_client_pv(client_name, py_version, skip_fails):
 
     config = tox.session.prepare(
         [
-            "-c{}/{}-tox.ini".format(BASE_PATH, client_name),
+            "-c{}/{}-tox.ini".format(build_path, client_name),
             "-l"
         ]
     )
@@ -151,30 +154,31 @@ def __check_client_pv(client_name, py_version, skip_fails):
         if not skip_fails:
             raise SystemExit(msg)
         else:
-            logger.warning(msg)
+            LOG.warning(msg)
 
     return found
 
 
-def __render_templates(python_version, client_configs):
+def render_templates(python_version, client_configs, build_path):
     """
     Render Dockerfile.j2 and requirements.txt.j2 templates in files into build directory
     :param python_version: python version
     :param client_configs: openstack client configs
+    :param build_path: Build path
     :return: void, rendered files into build directory
     """
 
     template_dir = os.path.abspath('templates')
     env = Environment(loader=FileSystemLoader(searchpath=template_dir))
-    with open(BASE_PATH + '/requirements.txt', 'wb') as requirements:
-        logger.debug("Generating file requirements.txt")
+    with open(build_path + '/requirements.txt', 'wb') as requirements:
+        LOG.debug("Generating file requirements.txt")
         requirements.write(
             env.get_template('requirements.j2').render(
                 client_configs=client_configs
             )
         )
-    with open(BASE_PATH + '/Dockerfile', 'wb') as dockerfile:
-        logger.debug("Generating file Dockerfile")
+    with open(build_path + '/Dockerfile', 'wb') as dockerfile:
+        LOG.debug("Generating file Dockerfile")
         dockerfile.write(
             env.get_template('Dockerfile.j2').render(
                 python_version=python_version
@@ -182,22 +186,23 @@ def __render_templates(python_version, client_configs):
         )
 
 
-def __build_docker_image(python_version, release):
+def build_docker_image(python_version, release, build_path):
     """
     Build docker image by calling docker local daemon
     :param python_version: python version
     :param release: upstream release
+    :param build_path: Build path
     :return: void, get docker local image
     """
-    tag = 'engapa/ocs:{}-{}-latest'.format(python_version, release.replace('/', '_'))
-    child = subprocess.Popen(['docker', 'build', '-t', tag, BASE_PATH], stdin=subprocess.PIPE)
+    tag = 'engapa/osc:{}-{}-latest'.format(python_version, release.replace('/', '_'))
+    child = subprocess.Popen(['docker', 'build', '-t', tag, build_path], stdin=subprocess.PIPE)
     output, error = child.communicate()
     if error and child.returncode != 0:
-        logger.error(error)
+        LOG.error(error)
         raise SystemExit("Unavailable to build docker image")
 
 
-def __client_config(client_name, release):
+def client_config(client_name, release):
     """
     Gets Openstack client config
     :param client_name: Name of client
@@ -217,7 +222,7 @@ def main():
     Main function
     """
 
-    args = __parse_args()
+    args = parse_args()
 
     if args.config_file:
         try:
@@ -229,19 +234,21 @@ def main():
             release = config.get('release')
             skip_fails = config.get('skip-fails', False)
             verbose = config.get('verbose', False)
-            client_configs = [__client_config(x['name'], x.get('release', release)) for x in config['clients']]
+            build_path = config.get('build_path', BUILD_PATH)
+            client_configs = [client_config(x['name'], x.get('release', release)) for x in config['clients']]
         except yaml.YAMLError as exc:
-            logger.error('Unable to load configuration from file: {} . Caused by : {}', config_file, exc)
+            LOG.error('Unable to load configuration from file: {} . Caused by : {}', config_file, exc)
             sys.exit(1)
         except Exception as e:
-            logger.error(e)
+            LOG.error(e)
             sys.exit(1)
     else:
         python_version = args.python_version
         release = args.release
         skip_fails = args.skip_fails
         verbose = args.verbose
-        client_configs = [__client_config(client, release) for client in args.clients]
+        build_path = args.build_path or BUILD_PATH
+        client_configs = [client_config(client, release) for client in args.clients]
 
     # Required values :
     assert python_version, 'Required python_version value'
@@ -249,25 +256,26 @@ def main():
     assert client_configs, 'Required clients list'
 
     if verbose:
-        logger.setLevel(logging.DEBUG)
+        LOG.setLevel(logging.DEBUG)
 
-    __clean_dir()
+    clean_build_dir(build_path)
 
-    __download_docker_image_base(python_version)
+    download_docker_image_base(python_version)
 
     pool = multiprocessing.Pool()
-    client_url_list = [(client['name'], client['url']) for client in client_configs]
-    pool.map(__download_tox_module, client_url_list)
+    download_tox_module_args = [(client['name'], client['url'], build_path) for client in client_configs]
+    pool.map(download_tox_module, download_tox_module_args)
 
     cclients = []
 
     for client in client_configs:
-        if __check_client_pv(client['name'], python_version, skip_fails):
+        if check_client_pv(client['name'], python_version, skip_fails, build_path):
             cclients.append(client)
 
     if cclients:
-        __render_templates(python_version, client_configs)
-        __build_docker_image(python_version, release)
+        render_templates(python_version, client_configs, build_path)
+        build_docker_image(python_version, release, build_path)
+
 
 if __name__ == "__main__":
     main()
