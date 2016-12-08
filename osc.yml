@@ -1,8 +1,9 @@
 ---
 # Find client for this release (matched by git branch name) and python version (matched by tox env).
 release: stable/newton
-python_version: 2.7
-debug: True
+python_version: 3.4
+skip-fails: True
+verbose: True
 # List of all clients
 clients:
  - name: openstack
