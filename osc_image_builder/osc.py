@@ -21,6 +21,15 @@ import sys
 import os
 import shutil
 import logging
+import multiprocessing
+import argparse
+import urllib
+import tox
+import subprocess
+import time
+
+from jinja2 import Environment, FileSystemLoader
+
 
 if sys.version_info < (2, 7):
     sys.exit("This script requires Python 2.7 or newer!")
@@ -30,25 +39,25 @@ logger = logging.getLogger("OSC-docker")
 logging.basicConfig()
 logger.setLevel(logging.INFO)
 
+BASE_PATH = '../build'
 
-def _clean_dir(basepath, remove=False, create=True):
-    if os.path.exists(basepath):
-        for filename in os.listdir(basepath):
-            filepath = os.path.join(basepath, filename)
+
+def __clean_dir(remove=False, create=True):
+    if os.path.exists(BASE_PATH):
+        for filename in os.listdir(BASE_PATH):
+            filepath = os.path.join(BASE_PATH, filename)
             try:
                 shutil.rmtree(filepath)
             except OSError:
                 os.remove(filepath)
         if remove:
-            os.rmdir(basepath)
+            os.rmdir(BASE_PATH)
 
     elif create:
-        os.makedirs(basepath)
+        os.makedirs(BASE_PATH)
 
 
-def _parse_args():
-
-    import argparse
+def __parse_args():
 
     parser = argparse.ArgumentParser(
         prog="ocs",
@@ -57,12 +66,12 @@ def _parse_args():
     parser.add_argument('-f', '--config-file', dest='config_file',
                         help='A YAML config file.')
     parser.add_argument('-pv', '--python-version', dest='python_version',
-                        help='Python version. For example : 2.7, 3.4')
+                        help='Python version for docker image base(https://hub.docker.com/_/python/).'
+                             'For example : 2.7, 3.5.2')
     parser.add_argument('-r', '--release', dest='release',
                         help='Upstream release.')
     parser.add_argument('-c', '--clients', dest='clients', action='append',
-                        default=['openstack'],
-                        help='Provide all openstack python client that you want.'
+                        help='Provide all openstack python clients that you want.'
                              'By defaults only python-openstackclient will be installed.')
     parser.add_argument('-sf', '--skip-fails', dest='skip_fails', action='store_true',
                         help='Skip failures and create the image.')
@@ -72,64 +81,87 @@ def _parse_args():
     return parser.parse_args()
 
 
-def _download_tox_module(basepath, release, client):
+def __download_docker_image_base(python_version):
+    child = subprocess.Popen(['docker', 'pull', 'python:{}'.format(python_version)],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, error = child.communicate()
+    logger.debug(output)
+    if error and child.returncode != 0:
+        logger.error(error)
+        raise SystemExit(
+            "Unavailable to download docker image for python version {}".format(python_version))
 
-    import urllib
 
-    url = "https://raw.githubusercontent.com/openstack/" \
-          "python-%(client)sclient/%(release)s/tox.ini" % {'release': release, 'client': client}
-    with open('%(basepath)s/%(client)s-tox.ini' % {'basepath': basepath, 'client': client}, 'wb') as output:
-        output.write(urllib.urlopen(url).read())
+def __download_tox_module(client_url):
+
+    client, url = client_url
+    start_time = time.time()
+    fname, info = urllib.urlretrieve(url,
+                                     filename='{}/{}-tox.ini'.format(BASE_PATH, client))
+    end_time = time.time()
+    logger.debug(" Downloaded file : %s , size : %s bytes, time: %s",
+                 fname, info.get('content-length'),  end_time - start_time)
 
 
-def _check_client_pv(basepath, client, py_version):
+def __check_client_pv(client, py_version, skip_fails):
     py_env = 'py'
     if '.' in py_version:
         py_env += py_version.replace('.', '')[0:2]
     else:
         py_env += py_version[0:2]
 
-    import tox
     config = tox.session.prepare(
         [
-            "-c%s/%s-tox.ini" % (basepath, client),
+            "-c%s/%s-tox.ini" % (BASE_PATH, client),
             "-l"
         ]
     )
-    return py_env in config.envlist
+    found = py_env in config.envlist
+
+    if not found:
+        msg = "Not found venv {} for client {}".format(py_env, client)
+        if not skip_fails:
+            raise SystemExit(msg)
+        else:
+            logger.warning(msg)
+
+    return found
 
 
-def _render_templates(basepath, python_version, release, clients):
-
-    from jinja2 import Environment, FileSystemLoader
+def __render_templates(python_version, release, clients):
 
     template_dir = os.path.abspath('templates')
     env = Environment(loader=FileSystemLoader(searchpath=template_dir))
-    with open(basepath + '/requirements.txt', 'wb') as requirements:
+    with open(BASE_PATH + '/requirements.txt', 'wb') as requirements:
+        logger.debug("Generating file requirements.txt")
         requirements.write(
             env.get_template('requirements.j2').render(
                 release=release,
                 clients=clients
             )
         )
-    with open(basepath + '/Dockerfile', 'wb') as dockerfile:
+    with open(BASE_PATH + '/Dockerfile', 'wb') as dockerfile:
+        logger.debug("Generating file Dockerfile")
         dockerfile.write(
             env.get_template('Dockerfile.j2').render(
-                build_path=os.path.abspath(basepath),
                 python_version=python_version
             )
         )
 
 
-def _build_docker_image(basepath, python_version, release):
-    import subprocess
+def __build_docker_image(python_version, release):
     tag = 'engapa/ocs:{}-{}-latest'.format(python_version, release.replace('/', '_'))
-    subprocess.call(['docker', 'build', '-t', tag, basepath])
+    child = subprocess.Popen(['docker', 'build', '-t', tag, BASE_PATH], stdin=subprocess.PIPE)
+    output, error = child.communicate()
+    if error and child.returncode != 0:
+        logger.error(error)
+        raise SystemExit(
+            "Unavailable to build docker image")
 
 
 def main():
 
-    args = _parse_args()
+    args = __parse_args()
 
     if args.config_file:
         import yaml
@@ -140,8 +172,8 @@ def main():
             if python_version:
                 python_version = str(python_version)
             release = config.get('release')
-            skip_failures = config.get('skip-failures', False)
-            debug = config.get('debug', False)
+            skip_fails = config.get('skip-fails', False)
+            verbose = config.get('verbose', False)
             clients = [x['name'] for x in config['clients']]
         except yaml.YAMLError as exc:
             logger.error('Unable to load configration from file: {} . Caused by : {}', config_file, exc)
@@ -152,38 +184,38 @@ def main():
     else:
         python_version = args.python_version
         release = args.release
-        skip_failures = args.skip_failures
-        debug = args.debug
+        skip_fails = args.skip_fails
+        verbose = args.verbose
+        clients = args.clients
 
     # Required values :
     assert python_version, 'Required python_version value'
     assert release, 'Required release value'
     assert clients, 'Required clients list'
 
-    if debug:
+    if verbose:
         logger.setLevel(logging.DEBUG)
 
-    basepath = "../build"
+    __clean_dir()
 
-    _clean_dir(basepath)
+    __download_docker_image_base(python_version)
 
     cclients = []
 
-    for client in clients:
-        try:
-            _download_tox_module(basepath, release, client)
-            if _check_client_pv(basepath, client, python_version):
-                cclients.append(client)
-            else:
-                logger.error("Not found python env for {} client with version {}.", client, python_version)
-        except Exception as e:
-            logger.error(e)
-            if not skip_failures:
-                sys.exit(1)
-    if cclients:
-        _render_templates(basepath, python_version, release, cclients)
-        _build_docker_image(basepath, python_version, release)
+    pool = multiprocessing.Pool()
+    client_url_list = [
+        (client, "https://raw.githubusercontent.com/openstack/python-{}client/{}/tox.ini".format(client, release))
+        for client in clients
+    ]
+    pool.map(__download_tox_module, client_url_list)
 
+    for client in clients:
+        if __check_client_pv(client, python_version, skip_fails):
+            cclients.append(client)
+
+    if cclients:
+        __render_templates(python_version, release, cclients)
+        __build_docker_image(python_version, release)
 
 if __name__ == "__main__":
     main()
