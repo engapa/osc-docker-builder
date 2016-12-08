@@ -43,6 +43,12 @@ BASE_PATH = '../build'
 
 
 def __clean_dir(remove=False, create=True):
+    """
+    Clean build directory
+    :param remove: Remove root build directory, by default False
+    :param create: Create root build directory, by default True
+    :return: void
+    """
     if os.path.exists(BASE_PATH):
         for filename in os.listdir(BASE_PATH):
             filepath = os.path.join(BASE_PATH, filename)
@@ -58,6 +64,10 @@ def __clean_dir(remove=False, create=True):
 
 
 def __parse_args():
+    """
+    Parses args
+    :return: parsed args
+    """
 
     parser = argparse.ArgumentParser(
         prog="ocs",
@@ -82,6 +92,11 @@ def __parse_args():
 
 
 def __download_docker_image_base(python_version):
+    """
+    Download docker image base
+    :param python_version: python version
+    :return: void, pull the suitable docker image
+    """
     child = subprocess.Popen(['docker', 'pull', 'python:{}'.format(python_version)],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = child.communicate()
@@ -93,6 +108,11 @@ def __download_docker_image_base(python_version):
 
 
 def __download_tox_module(client_url):
+    """
+    Download tox.ini file from openstack client
+    :param client_url: a pair client name and url
+    :return: void, create a <client>-tox.ini file into build directory
+    """
 
     client, url = client_url
     start_time = time.time()
@@ -104,6 +124,13 @@ def __download_tox_module(client_url):
 
 
 def __check_client_pv(client, py_version, skip_fails):
+    """
+    Matches python version with tox env
+    :param client: name of openstack client
+    :param py_version: python version
+    :param skip_fails: skip fails for this client and continue
+    :return: True if matches, False in other case
+    """
     py_env = 'py'
     if '.' in py_version:
         py_env += py_version.replace('.', '')[0:2]
@@ -112,7 +139,7 @@ def __check_client_pv(client, py_version, skip_fails):
 
     config = tox.session.prepare(
         [
-            "-c%s/%s-tox.ini" % (BASE_PATH, client),
+            "-c{}/{}-tox.ini".format(BASE_PATH, client),
             "-l"
         ]
     )
@@ -129,6 +156,13 @@ def __check_client_pv(client, py_version, skip_fails):
 
 
 def __render_templates(python_version, release, clients):
+    """
+    Render Dockerfile.j2 and requirements.txt.j2 templates in files into build directory
+    :param python_version: python version
+    :param release: upstream release
+    :param clients: openstack clients
+    :return: void, rendered files into build directory
+    """
 
     template_dir = os.path.abspath('templates')
     env = Environment(loader=FileSystemLoader(searchpath=template_dir))
@@ -150,6 +184,12 @@ def __render_templates(python_version, release, clients):
 
 
 def __build_docker_image(python_version, release):
+    """
+    Build docker image by calling docker local daemon
+    :param python_version: python version
+    :param release: upstream release
+    :return: void, get docker local image
+    """
     tag = 'engapa/ocs:{}-{}-latest'.format(python_version, release.replace('/', '_'))
     child = subprocess.Popen(['docker', 'build', '-t', tag, BASE_PATH], stdin=subprocess.PIPE)
     output, error = child.communicate()
@@ -160,6 +200,9 @@ def __build_docker_image(python_version, release):
 
 
 def main():
+    """
+    Main function
+    """
 
     args = __parse_args()
 
