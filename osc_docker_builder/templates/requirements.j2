@@ -1,0 +1,2 @@
+{%- for client_config in client_configs %}git+https://github.com/openstack/python-{{client_config.name}}client@{{client_config.release}}
+{% endfor -%}

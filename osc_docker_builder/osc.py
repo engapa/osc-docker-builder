@@ -27,6 +27,7 @@ import urllib
 import tox
 import subprocess
 import time
+import yaml
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -39,7 +40,7 @@ logger = logging.getLogger("OSC-docker")
 logging.basicConfig()
 logger.setLevel(logging.INFO)
 
-BASE_PATH = '../build'
+BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')
 
 
 def __clean_dir(remove=False, create=True):
@@ -119,14 +120,14 @@ def __download_tox_module(client_url):
     fname, info = urllib.urlretrieve(url,
                                      filename='{}/{}-tox.ini'.format(BASE_PATH, client))
     end_time = time.time()
-    logger.debug(" Downloaded file : %s , size : %s bytes, time: %s",
+    logger.debug(" Downloaded file : %s, size : %s bytes, time: %s",
                  fname, info.get('content-length'),  end_time - start_time)
 
 
-def __check_client_pv(client, py_version, skip_fails):
+def __check_client_pv(client_name, py_version, skip_fails):
     """
     Matches python version with tox env
-    :param client: name of openstack client
+    :param client_name: name of openstack client
     :param py_version: python version
     :param skip_fails: skip fails for this client and continue
     :return: True if matches, False in other case
@@ -139,14 +140,14 @@ def __check_client_pv(client, py_version, skip_fails):
 
     config = tox.session.prepare(
         [
-            "-c{}/{}-tox.ini".format(BASE_PATH, client),
+            "-c{}/{}-tox.ini".format(BASE_PATH, client_name),
             "-l"
         ]
     )
     found = py_env in config.envlist
 
     if not found:
-        msg = "Not found venv {} for client {}".format(py_env, client)
+        msg = "Not found venv {} for client {}".format(py_env, client_name)
         if not skip_fails:
             raise SystemExit(msg)
         else:
@@ -155,12 +156,11 @@ def __check_client_pv(client, py_version, skip_fails):
     return found
 
 
-def __render_templates(python_version, release, clients):
+def __render_templates(python_version, client_configs):
     """
     Render Dockerfile.j2 and requirements.txt.j2 templates in files into build directory
     :param python_version: python version
-    :param release: upstream release
-    :param clients: openstack clients
+    :param client_configs: openstack client configs
     :return: void, rendered files into build directory
     """
 
@@ -170,8 +170,7 @@ def __render_templates(python_version, release, clients):
         logger.debug("Generating file requirements.txt")
         requirements.write(
             env.get_template('requirements.j2').render(
-                release=release,
-                clients=clients
+                client_configs=client_configs
             )
         )
     with open(BASE_PATH + '/Dockerfile', 'wb') as dockerfile:
@@ -195,8 +194,22 @@ def __build_docker_image(python_version, release):
     output, error = child.communicate()
     if error and child.returncode != 0:
         logger.error(error)
-        raise SystemExit(
-            "Unavailable to build docker image")
+        raise SystemExit("Unavailable to build docker image")
+
+
+def __client_config(client_name, release):
+    """
+    Gets Openstack client config
+    :param client_name: Name of client
+    :param release: Release
+    :return: Client config
+    """
+    return dict(
+        name=client_name,
+        release=release,
+        url="https://raw.githubusercontent.com/openstack/"
+            "python-{}client/{}/tox.ini".format(client_name, release)
+    )
 
 
 def main():
@@ -207,7 +220,6 @@ def main():
     args = __parse_args()
 
     if args.config_file:
-        import yaml
         try:
             with open(args.config_file, 'r') as config_file:
                 config = yaml.load(config_file)
@@ -217,9 +229,9 @@ def main():
             release = config.get('release')
             skip_fails = config.get('skip-fails', False)
             verbose = config.get('verbose', False)
-            clients = [x['name'] for x in config['clients']]
+            client_configs = [__client_config(x['name'], x.get('release', release)) for x in config['clients']]
         except yaml.YAMLError as exc:
-            logger.error('Unable to load configration from file: {} . Caused by : {}', config_file, exc)
+            logger.error('Unable to load configuration from file: {} . Caused by : {}', config_file, exc)
             sys.exit(1)
         except Exception as e:
             logger.error(e)
@@ -229,12 +241,12 @@ def main():
         release = args.release
         skip_fails = args.skip_fails
         verbose = args.verbose
-        clients = args.clients
+        client_configs = [__client_config(client, release) for client in args.clients]
 
     # Required values :
     assert python_version, 'Required python_version value'
     assert release, 'Required release value'
-    assert clients, 'Required clients list'
+    assert client_configs, 'Required clients list'
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -243,21 +255,18 @@ def main():
 
     __download_docker_image_base(python_version)
 
-    cclients = []
-
     pool = multiprocessing.Pool()
-    client_url_list = [
-        (client, "https://raw.githubusercontent.com/openstack/python-{}client/{}/tox.ini".format(client, release))
-        for client in clients
-    ]
+    client_url_list = [(client['name'], client['url']) for client in client_configs]
     pool.map(__download_tox_module, client_url_list)
 
-    for client in clients:
-        if __check_client_pv(client, python_version, skip_fails):
+    cclients = []
+
+    for client in client_configs:
+        if __check_client_pv(client['name'], python_version, skip_fails):
             cclients.append(client)
 
     if cclients:
-        __render_templates(python_version, release, cclients)
+        __render_templates(python_version, client_configs)
         __build_docker_image(python_version, release)
 
 if __name__ == "__main__":

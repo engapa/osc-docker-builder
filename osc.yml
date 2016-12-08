@@ -1,8 +1,8 @@
 ---
 # Find client for this release (matched by git branch name) and python version (matched by tox env).
 release: stable/newton
-python_version: 3.4
-skip-fails: True
+python_version: 2.7
+skip-fails: False
 verbose: True
 # List of all clients
 clients:
@@ -20,6 +20,9 @@ clients:
    description: Policy as a service API
  - name: designate
    description: DNS service API
+ - name: gnocchi
+   description: Gnocchi is a multi-tenant timeseries, metrics and resources database
+   release: master
  - name: heat
    description: Orchestration API
  - name: ironic
