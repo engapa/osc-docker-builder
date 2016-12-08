@@ -9,7 +9,7 @@ Within Docker containers is easy to get an isolated environment with all Opensta
 For example, suppose that you want to create a docker image for these python version and Openstack clients:
 
 ```
-osc.py --python-version 2.7 --clients magnum --clients heat
+osc.py --python-version 2.7 --clients magnum --clients heat --release stable/newton
 ```
 
 I recommend you to use a config file (which you could watch under version control system):
