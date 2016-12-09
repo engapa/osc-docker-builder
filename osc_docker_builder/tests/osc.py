@@ -23,6 +23,9 @@ from osc_docker_builder import osc
 
 
 class OSCTestCase(unittest.TestCase):
+    """
+    Docker image builder for OSC tests
+    """
 
     def setUp(self):
         """Run before each test method to initialize test environment."""
@@ -33,6 +36,9 @@ class OSCTestCase(unittest.TestCase):
         super(OSCTestCase, self).tearDown()
 
     def test_clean_dir_default(self):
+        """
+        Tests build path creation
+        """
         build_path = 'test_build'
         try:
             osc.clean_build_dir(build_path, remove=False, create=True)
@@ -41,6 +47,9 @@ class OSCTestCase(unittest.TestCase):
             os.rmdir(build_path)
 
     def test_clean_dir_without_creation(self):
+        """
+        Tests build path creation
+        """
         build_path = 'test_build'
         osc.clean_build_dir(build_path, remove=False, create=False)
         self.assertFalse(os.path.exists(build_path))
