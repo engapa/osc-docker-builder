@@ -21,5 +21,4 @@ deployment:
     branch: master
     commands:
       - python setup.py sdist bdist_wheel
-      - rm -rf dist
       - pip install twine && twine upload -u engapa -p $PYPI_PASSWD dist/*
