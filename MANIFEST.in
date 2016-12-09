@@ -1,5 +1,8 @@
 exclude .gitignore
 
+include README.md
+include LICENSE
+
 include osc_docker_builder/templates/Dockerfile.j2
 include osc_docker_builder/templates/requirements.j2
 

@@ -36,6 +36,7 @@ setuptools.setup(
     author_email='engapa@gmail.com',
     url="http://github.com/engapa/osc-docker-builder.git",
     description='Docker image builder for Openstack python clients',
+    long_description=get_contents('README.md'),
     license="Apache 2.0",
     test_suite="osc_docker_builder.tests",
     packages=setuptools.find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),

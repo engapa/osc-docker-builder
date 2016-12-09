@@ -1,4 +1,4 @@
-[![Code Issues](https://www.quantifiedcode.com/api/v1/project/1a96eb463beb4512a203762481b0c1ab/badge.svg)](https://www.quantifiedcode.com/app/project/1a96eb463beb4512a203762481b0c1ab)
+[![Latest Version](https://img.shields.io/pypi/v/osc-docker-builder.svg)](https://pypi.python.org/pypi/osc-docker-builder/) [![Downloads](https://img.shields.io/pypi/dm/osc-docker-builder.svg)](https://pypi.python.org/pypi/osc-docker-builder/) [![Code Issues](https://www.quantifiedcode.com/api/v1/project/1a96eb463beb4512a203762481b0c1ab/badge.svg)](https://www.quantifiedcode.com/app/project/1a96eb463beb4512a203762481b0c1ab)
 # Docker image builder for Openstack clients (aka OSCs docker builder)
 
 A lot of people need install/update/upgrade/downgrade any Openstack python client in any time.
