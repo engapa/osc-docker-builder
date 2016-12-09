@@ -31,12 +31,12 @@ def get_contents(filename, splitlines=False):
 
 setuptools.setup(
     name="osc-docker-builder",
-    version='1.2',
+    version='1.3',
     author='Enrique Garcia Pablos',
     author_email='engapa@gmail.com',
     url="http://github.com/engapa/osc-docker-builder.git",
     description='Docker image builder for Openstack python clients',
-    long_description=get_contents('README.md'),
+    long_description=get_contents('README.rst'),
     license="Apache 2.0",
     test_suite="osc_docker_builder.tests",
     packages=setuptools.find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
