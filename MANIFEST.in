@@ -1,0 +1,6 @@
+exclude .gitignore
+
+include osc_docker_builder/templates/Dockerfile.j2
+include osc_docker_builder/templates/requirements.j2
+
+global-exclude *.pyc *.pyo
