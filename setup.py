@@ -49,6 +49,7 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     zip_safe=False,
+    package_data={'osc_docker_builder': ['templates/Dockerfile.j2', 'templates/requirements.j2']},
     entry_points={
         'console_scripts': [
             "osc-builder = osc_docker_builder.osc:main"
