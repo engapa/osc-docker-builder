@@ -8,10 +8,10 @@ dependencies:
     - pip -V
     - pip install -U pip
     - pip install -U ipdb
-    - pip install --upgrade --editable tox
-    - pip install --upgrade --editable tox-pyenv
+    - pip install -U tox
+    - pip install -U tox-pyenv
     - pyenv local $TOX_PY34 $TOX_PY27
 
 test:
   override:
-    - tox -v --recreate
+    - tox -r
