@@ -104,32 +104,39 @@ To get a local virtualenv just type (for python 3.4 use "-e py34" argument):
 
 ```
 $ tox -r -e pep8,py27
+pep8 recreate: /Users/engapa/Projects/BBVA/EuroCloud/git/osc-docker-builder/.tox/pep8
+pep8 installdeps: flake8
+pep8 installed: configparser==3.5.0,enum34==1.1.6,flake8==3.2.1,mccabe==0.5.2,pycodestyle==2.2.0,pyflakes==1.3.0,wheel==0.24.0
+pep8 runtests: PYTHONHASHSEED='775912511'
+pep8 runtests: commands[0] | flake8
+0
 py27 recreate: /Users/engapa/Projects/BBVA/EuroCloud/git/osc-docker-builder/.tox/py27
 py27 installdeps: -r/Users/engapa/Projects/BBVA/EuroCloud/git/osc-docker-builder/requirements.txt, -r/Users/engapa/Projects/BBVA/EuroCloud/git/osc-docker-builder/test-requirements.txt
 py27 develop-inst: /Users/engapa/Projects/BBVA/EuroCloud/git/osc-docker-builder
-py27 installed: coverage==4.2,funcsigs==1.0.2,Jinja2==2.8,MarkupSafe==0.23,mock==2.0.0,mox==0.5.3,nose==1.3.7,-e git+git@github.com:engapa/osc-docker-builder.git@4366c8c7c29b130a4fdce68a0d6c152d65bb96d3#egg=osc_docker_builder-master,pbr==1.10.0,pluggy==0.4.0,py==1.4.31,PyYAML==3.12,six==1.10.0,tox==2.5.0,virtualenv==15.1.0,wheel==0.24.0
-py27 runtests: PYTHONHASHSEED='179418079'
+py27 installed: coverage==4.2,funcsigs==1.0.2,Jinja2==2.8,MarkupSafe==0.23,mock==2.0.0,mox==0.5.3,nose==1.3.7,-e git+git@github.com:engapa/osc-docker-builder.git@f96c66520e4596e84ec423127a0528675efefd88#egg=osc_docker_builder-master,pbr==1.10.0,pluggy==0.4.0,py==1.4.31,PyYAML==3.12,six==1.10.0,tox==2.5.0,virtualenv==15.1.0,wheel==0.24.0
+py27 runtests: PYTHONHASHSEED='775912511'
 py27 runtests: commands[0] | python setup.py nosetests
 running nosetests
 running egg_info
+writing osc_docker_builder.egg-info/PKG-INFO
 writing top-level names to osc_docker_builder.egg-info/top_level.txt
 writing dependency_links to osc_docker_builder.egg-info/dependency_links.txt
 writing entry points to osc_docker_builder.egg-info/entry_points.txt
-writing osc_docker_builder.egg-info/PKG-INFO
 reading manifest file 'osc_docker_builder.egg-info/SOURCES.txt'
 writing manifest file 'osc_docker_builder.egg-info/SOURCES.txt'
 
 Name                        Stmts   Miss  Cover
 -----------------------------------------------
 osc_docker_builder.py           0      0   100%
-osc_docker_builder/osc.py     129    102    21%
+osc_docker_builder/osc.py     129    102    70%
 -----------------------------------------------
-TOTAL                         129    102    21%
+TOTAL                         129    102    70%
 ----------------------------------------------------------------------
 Ran 0 tests in 0.097s
 
 OK
 ___________________________________________________________________________ summary ____________________________________________________________________________
+  pep8: commands succeeded
   py27: commands succeeded
   congratulations :)
 ```
