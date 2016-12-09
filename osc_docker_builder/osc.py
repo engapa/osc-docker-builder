@@ -41,6 +41,7 @@ logging.basicConfig()
 LOG.setLevel(logging.INFO)
 
 BUILD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')
+TEMPLATES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 
 def clean_build_dir(build_path, remove=False, create=True):
@@ -168,8 +169,7 @@ def render_templates(python_version, client_configs, build_path):
     :return: void, rendered files into build directory
     """
 
-    template_dir = os.path.abspath('templates')
-    env = Environment(loader=FileSystemLoader(searchpath=template_dir))
+    env = Environment(loader=FileSystemLoader(searchpath=TEMPLATES_PATH))
     with open(build_path + '/requirements.txt', 'wb') as requirements:
         LOG.debug("Generating file requirements.txt")
         requirements.write(
