@@ -66,9 +66,10 @@ def clean_build_dir(build_path, remove=False, create=True):
         os.makedirs(build_path)
 
 
-def parse_args():
+def parse_args(args):
     """
     Parses args
+    :param args: arguments
     :return: parsed args
     """
 
@@ -93,7 +94,7 @@ def parse_args():
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='Show details.')
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def download_docker_image_base(python_version):
@@ -222,7 +223,7 @@ def main():
     Main function
     """
 
-    args = parse_args()
+    args = parse_args(sys.argv[1:])
 
     if args.config_file:
         try:

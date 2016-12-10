@@ -27,6 +27,13 @@ Openstack python clients project should have following prerequisites :
 Build a docker image with OSCs
 ==============================
 
+This module can be installed by pip:
+
+::
+
+    $ pip install osc-docker-builder
+    osc-builder -f osc.yml -bp /tmp/osc-builder
+
 Best way to get help about the command is :
 
 ::
@@ -57,26 +64,28 @@ Best way to get help about the command is :
       -sf, --skip-fails     Skip failures and create the image.
       -v, --verbose         Show details.
 
+
 Ready for action ?, suppose that you want to create a docker image for
 these python version and Openstack clients:
 
 ::
 
-    osc.py --python-version 3.4 --clients openstack --clients heat --release stable/newton --build-path /tmp/osc-docker-builder
+    osc-builder --python-version 3.4 --clients openstack --clients heat --release stable/newton --build-path /tmp/osc-docker-builder
 
 I recommend you to use a config file (which you could watch under
 version control system):
 
 ::
 
-    osc.py -f osc.yml
+    osc-builder -f osc.yml
 
-This module can be installed by pip too:
+
+This command can be launched form source code, main function is in osc_docker_builder package :
 
 ::
 
-    $ pip install osc-docker-builder
-    osc-builder -f osc.yml -bp /tmp/osc-builder
+    $ osc.py -f osc.yml -bp /tmp/osc-builder
+
 
 As command execution output we have a docker image ready to be used.
 Push your images to your private registry or use my images at "engapa"
@@ -85,7 +94,7 @@ account in dockerhub.com
 Run docker container
 ====================
 
-For example, run a container based on latest image for python client 3.4
+For example, run a container based on latest image for python client 2.7
 and release stable/newton :
 
 ::
@@ -96,7 +105,7 @@ and release stable/newton :
     CONTAINER ID   IMAGE                               COMMAND     CREATED        STATUS       PORTS  NAMES
     1f395d7273b9   engapa/osc:2.7-stable_newton-latest "/bin/bash" 2 seconds ago  Up 3 seconds        osc
 
-Let's see , for example the version of the Heat client in this
+Let's see , for example, the version of the Heat client installed in this
 container:
 
 ::
