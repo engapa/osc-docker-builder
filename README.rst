@@ -32,7 +32,6 @@ This module can be installed by pip:
 ::
 
     $ pip install osc-docker-builder
-    osc-builder -f osc.yml -bp /tmp/osc-builder
 
 Best way to get help about the command is :
 
