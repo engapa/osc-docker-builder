@@ -1,0 +1,19 @@
+clouds:
+  spaincloud:
+    auth:
+      username: engapa
+      password: XXXXXXXXX
+      project_name: OSOOS
+      auth_url: 'https://spaincloud.com:5001/v2.0'
+    region_name:
+      - SpainSalamanca
+    dns_api_version: 1
+  eurocloud:
+    auth:
+      username: engapa
+      password: XXXXXXXXX
+      project_id: 12309876540
+      auth_url: 'https://eurocloud.com:5001/v2.0'
+    region_name:
+      - Spain
+      - Germany

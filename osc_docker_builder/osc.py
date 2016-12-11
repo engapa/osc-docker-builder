@@ -203,18 +203,20 @@ def build_docker_image(python_version, release, build_path):
         raise SystemExit("Unavailable to build docker image")
 
 
-def client_config(client_name, release):
+def client_config(client_name, release, egg=None):
     """
     Gets Openstack client config
     :param client_name: Name of client
     :param release: Release
+    :param egg: egg name
     :return: Client config
     """
     return dict(
         name=client_name,
         release=release,
         url="https://raw.githubusercontent.com/openstack/"
-            "python-{}client/{}/tox.ini".format(client_name, release)
+            "python-{}client/{}/tox.ini".format(client_name, release),
+        egg=egg if egg else "python-{}client".format(client_name)
     )
 
 
@@ -236,7 +238,8 @@ def main():
             skip_fails = config.get('skip-fails', False)
             verbose = config.get('verbose', False)
             build_path = config.get('build_path', BUILD_PATH)
-            client_configs = [client_config(x['name'], x.get('release', release)) for x in config['clients']]
+            client_configs = [
+                client_config(x['name'], x.get('release', release), x.get('egg')) for x in config['clients']]
         except yaml.YAMLError as exc:
             LOG.error('Unable to load configuration from file: {} . Caused by : {}', config_file, exc)
             sys.exit(1)

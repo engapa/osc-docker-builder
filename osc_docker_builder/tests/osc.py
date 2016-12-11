@@ -90,7 +90,7 @@ class OSCTestCase(unittest.TestCase):
         :return:
         """
         python_version = '2.7'
-        client_configs = [{'name': 'myclient', 'release': 'newton'}]
+        client_configs = [{'name': 'myclient', 'release': 'newton', 'egg': 'myyyyy'}]
         build_path = 'test_build'
 
         osc.clean_build_dir(build_path)
@@ -111,10 +111,12 @@ class OSCTestCase(unittest.TestCase):
                                               'Docker file content has to have "python:2.7" string')
                             elif filename == 'requirements.txt':
                                 self.assertIn(
-                                    'python-{}client@{}'.format(
-                                        client_configs[0]['name'], client_configs[0]['release']),
+                                    'python-{}client@{}#{}'.format(
+                                        client_configs[0]['name'],
+                                        client_configs[0]['release'],
+                                        client_configs[0]['egg']),
                                     content,
-                                    'requirements.txt has to have "python-myclientclient@newton" string')
+                                    'requirements.txt has to have "python-myclientclient@newton#myyyyy" string')
                         else:
                             shutil.rmtree(filepath)
                             raise Exception('Invalid file name %s', filename)
@@ -141,6 +143,7 @@ class OSCTestCase(unittest.TestCase):
             {
                 'name': client_name,
                 'release': release,
-                'url': "https://raw.githubusercontent.com/openstack/python-myclientclient/release/tox.ini"
+                'url': "https://raw.githubusercontent.com/openstack/python-myclientclient/release/tox.ini",
+                'egg': 'python-myclientclient'
             }
         )

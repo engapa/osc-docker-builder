@@ -11,6 +11,7 @@ clients:
    description: Basic set of openstack clients (glance, nova, cinder, keystone)
  - name: aodh
    description: Alarms and notifications API
+   egg: aodhclient
  - name: barbican
    description: Key Manager Service API
  - name: ceilometer
@@ -23,6 +24,7 @@ clients:
    description: DNS service API
  - name: gnocchi
    description: Gnocchi is a multi-tenant timeseries, metrics and resources database
+   egg: gnocchiclient
    release: master
  - name: heat
    description: Orchestration API

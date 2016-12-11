@@ -90,7 +90,7 @@ As command execution output we have a docker image ready to be used.
 Push your images to your private registry or use my images at "engapa"
 account in dockerhub.com
 
-Run docker container
+Running and using docker container
 ====================
 
 For example, run a container based on latest image for python client 2.7
@@ -98,7 +98,7 @@ and release stable/newton :
 
 ::
 
-    $ docker run -it -d --name osc engapa/osc:2.7-stable_newton-latest /bin/bash
+    $ docker run -it -d --name osc engapa/osc:2.7-stable_newton-latest
     1f395d7273b99b734725fcbab4ebd05082f21978e0c4e3104cc8332c7430920d
     $ docker ps
     CONTAINER ID   IMAGE                               COMMAND     CREATED        STATUS       PORTS  NAMES
@@ -116,8 +116,8 @@ If you prefer operate into the container :
 
 ::
 
-    $ docker exec -it 1f395d7273b9 /bin/bash
-    root@1f395d7273b9:/# root@1f395d7273b9:/# pip list --format columns | grep -i "^python-.*client"
+    $ docker attach 1f395d7273b9
+    root@1f395d7273b9:# pip list --format columns | grep -i "^python-.*client"
     python-openstackclient         3.2.1.dev10 /src/python-openstackclient
     python-saharaclient            0.18.1.dev1 /src/python-saharaclient
     python-searchlightclient       1.0.1.dev1  /src/python-searchlightclient
@@ -126,6 +126,35 @@ If you prefer operate into the container :
     python-swiftclient             3.1.1.dev1  /src/python-swiftclient
     ...
     root@1f395d7273b9:/#
+
+
+If you want to update all python client versions (if provided release was a branch , i.e : master) just execute this command into the container:
+
+::
+
+    $ docker attach 1f395d7273b9
+    root@1f395d7273b9:/root# pip install -U -r requirements.txt
+
+
+An interesting module of openstack is 'os-client-config', it aims you to use a cloud configuration file shared by volume mount point (at "/root", "/root/.config/openstack" or "/etc/openstack" directory):
+
+::
+
+    $ cat << EOF > cloud.yml
+    > clouds:
+    >   spaincloud:
+    >     auth:
+    >       username: engapa
+    >       password: XXXXXXXXX
+    >       project_name: OSOOS
+    >       auth_url: 'https://spaincloud.com:5001/v2.0'
+    >     region_name: SpainSalamanca
+    >     dns_api_version: 1
+    > EOF
+    $ docker run -it --name osc -v $(pwd)/clouds.yml:/root/.config/openstack/clouds.yml engapa/osc:2.7-stable_newton-latest
+    root@1536ac361c6c:~# openstack --os-cloud spaincloud server list
+    ...
+
 
 Developer mode
 ==============
@@ -181,6 +210,7 @@ Load the virtualenv and build a docker image by :
 
     $ source .tox/py27/bin/activate
     $(py27) osc-builder -f osc.yml
+
 
 Author
 ======
