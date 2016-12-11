@@ -118,9 +118,12 @@ If you prefer operate into the container :
 
     $ docker exec -it 1f395d7273b9 /bin/bash
     root@1f395d7273b9:/# root@1f395d7273b9:/# pip list --format columns | grep -i "^python-.*client"
-    python-heatclient   1.5.0
-    python-magnumclient 2.3.2.dev3
-    python-swiftclient  3.2.0
+    python-openstackclient         3.2.1.dev10 /src/python-openstackclient
+    python-saharaclient            0.18.1.dev1 /src/python-saharaclient
+    python-searchlightclient       1.0.1.dev1  /src/python-searchlightclient
+    python-senlinclient            1.0.1.dev14 /src/python-senlinclient
+    python-solumclient             2.1.2.dev2  /src/python-solumclient
+    python-swiftclient             3.1.1.dev1  /src/python-swiftclient
     ...
     root@1f395d7273b9:/#
 
