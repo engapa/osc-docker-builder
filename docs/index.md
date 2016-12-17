@@ -9,24 +9,24 @@ Issues](https://www.quantifiedcode.com/api/v1/project/1a96eb463beb4512a203762481
 [![CircleCI](https://circleci.com/gh/engapa/osc-docker-builder/tree/master.svg?style=svg)](https://circleci.com/gh/engapa/osc-docker-builder/tree/master)
 
 A lot of people need install/update/upgrade/downgrade any Openstack
-python client in any time. Within Docker containers is easy to get an
-isolated environment with all Openstack clients that you wish, for a
-specific release from upstream .
+python client in any time. Thanks to Docker containers it is easy to get
+an isolated environment with all Openstack clients of specific upstream
+versions that you wish.
 
 Pre-requisites
 ==============
 
-Openstack python clients project should have following prerequisites :
+List of prerequisites :
 
 -   docker image: Ensure that there is an official python docker image
-    for provided python version parameter.
+    for the provided python version parameter.
 -   tox : All clients are using tox, and python version parameter will
     be matched in env list.
--   common release: All clients have to have same release, in other case
-    you must specify different release for a client by property
-    'release' in the osc.yml file to override global release parameter.
-    For example, in the osc.yml you can see that client gnocchi has
-    'master' release instead of 'stable/newton'.
+-   common release: All clients have to have the same release, in other
+    cases you must specify a different release (by property 'release' in
+    the osc.yml file) to override global release parameter. For example,
+    in the osc.yml you may see that gnocchi client has 'master' release
+    instead of 'stable/newton'.
 
 Build a docker image with OSCs
 ==============================
@@ -68,13 +68,13 @@ these python version and Openstack clients:
 
     osc-builder --python-version 3.4 --clients openstack --clients heat --release stable/newton --build-path /tmp/osc-docker-builder
 
-I recommend you to use a config file (which you could watch under
-version control system):
+I recommend using a config file (which could be controlled by a version
+control system):
 
     osc-builder -f osc.yml
 
-This command can be launched form source code, main function is in
-osc\_docker\_builder package :
+This command can be launched form the source code. The main function
+will be found in osc\_docker\_builder package :
 
     $ osc.py -f osc.yml -bp /tmp/osc-builder
 
@@ -94,13 +94,13 @@ and release stable/newton :
     CONTAINER ID   IMAGE                               COMMAND     CREATED        STATUS       PORTS  NAMES
     1f395d7273b9   engapa/osc:2.7-stable_newton-latest "/bin/bash" 2 seconds ago  Up 3 seconds        osc
 
-Let's see , for example, the version of the Heat client installed in
-this container:
+For example let's view the version of the Heat client installed in this
+container:
 
     $ docker exec -it 1f395d7273b9 /bin/bash -c "heat --version"
     1.5.0
 
-If you prefer operate into the container :
+If you prefer operate within the container :
 
     $ docker attach 1f395d7273b9
     root@1f395d7273b9:# pip list --format columns | grep -i "^python-.*client"
@@ -114,7 +114,7 @@ If you prefer operate into the container :
     root@1f395d7273b9:/#
 
 If you want to update all python client versions (if provided release
-was a branch , i.e : master) just execute this command into the
+was a branch , e.g. : master) just execute this command within the
 container:
 
     $ docker attach 1f395d7273b9
@@ -185,7 +185,7 @@ argument):
       py27: commands succeeded
       congratulations :)
 
-Load the virtualenv and build a docker image by :
+Load the virtualenv and build a docker image :
 
     $ source .tox/py27/bin/activate
     $(py27) osc-builder -f osc.yml
