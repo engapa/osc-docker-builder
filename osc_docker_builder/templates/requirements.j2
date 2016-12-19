@@ -1,2 +1,4 @@
-{%- for client_config in client_configs %}-e git+https://github.com/openstack/python-{{client_config.name}}client@{{client_config.release}}#egg={{client_config.egg}}
+{# Generate a list with all client URLs from upstream source #}
+{%- for client_config in client_configs -%}
+-e git+https://github.com/openstack/python-{{client_config.name}}client@{{client_config.release}}#egg={{client_config.egg}}
 {% endfor -%}
