@@ -3,10 +3,6 @@ machine:
     TOX_PY27: '2.7.10'
     TOX_PY34: '3.4.3'
 
-general:
-  artifacts:
-    - ".coverage" # Code coverage report
-
 dependencies:
   override:
     - pip -V
@@ -20,7 +16,7 @@ test:
   override:
     - tox -r
   post:
-    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+    - cd osc-docker-builder && bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
 
 deployment:
   production:
