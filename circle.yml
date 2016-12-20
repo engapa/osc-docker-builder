@@ -16,7 +16,7 @@ test:
   override:
     - tox -r
   post:
-    - cd osc-docker-builder && bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -f .coverage
 
 deployment:
   production:
