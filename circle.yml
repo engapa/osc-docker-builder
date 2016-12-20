@@ -3,6 +3,10 @@ machine:
     TOX_PY27: '2.7.10'
     TOX_PY34: '3.4.3'
 
+general:
+  artifacts:
+    - ".coverage" # Code coverage report
+
 dependencies:
   override:
     - pip -V
