@@ -1,4 +1,5 @@
 coverage
+codecov
 mox
 mock
 nose

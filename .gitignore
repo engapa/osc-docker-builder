@@ -1,3 +1,12 @@
 *~
+.*
 .idea
-build
+!.gitignore
+
+#Ignore python resources
+metafiles
+*.pyc
+*.pyo
+build/
+dist/
+*.egg-*/
