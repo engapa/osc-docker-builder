@@ -171,14 +171,14 @@ def render_templates(python_version, client_configs, build_path):
     """
 
     env = Environment(loader=FileSystemLoader(searchpath=TEMPLATES_PATH))
-    with open(build_path + '/requirements.txt', 'wb') as requirements:
+    with open(build_path + '/requirements.txt', 'w') as requirements:
         LOG.debug("Generating file requirements.txt")
         requirements.write(
             env.get_template('requirements.j2').render(
                 client_configs=client_configs
             )
         )
-    with open(build_path + '/Dockerfile', 'wb') as dockerfile:
+    with open(build_path + '/Dockerfile', 'w') as dockerfile:
         LOG.debug("Generating file Dockerfile")
         dockerfile.write(
             env.get_template('Dockerfile.j2').render(

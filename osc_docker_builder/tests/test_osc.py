@@ -53,7 +53,7 @@ class OSCTestCase(unittest.TestCase):
         """
         build_path = 'test_build'
         os.makedirs(build_path)
-        with open(build_path + '/test', 'wb') as test_file:
+        with open(build_path + '/test', 'w') as test_file:
             test_file.write('test')
         osc.clean_build_dir(build_path, remove=True, create=False)
         self.assertFalse(os.path.exists(build_path + '/test'))
