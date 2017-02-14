@@ -31,7 +31,7 @@ def get_contents(filename, splitlines=False):
 
 setuptools.setup(
     name="osc-docker-builder",
-    version='2.2',
+    version='2.3',
     author='Enrique Garcia Pablos',
     author_email='engapa@gmail.com',
     url="http://github.com/engapa/osc-docker-builder.git",
