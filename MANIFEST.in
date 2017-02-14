@@ -1,6 +1,6 @@
 exclude .gitignore
 
-include _README.rst
+include README.rst
 include LICENSE
 
 include osc_docker_builder/templates/Dockerfile.j2
