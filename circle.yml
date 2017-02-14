@@ -1,7 +1,7 @@
 machine:
   environment:
     TOX_PY27: '2.7.10'
-    TOX_PY34: '3.4.3'
+    TOX_PY35: '3.5.1'
 
 dependencies:
   override:
@@ -10,7 +10,7 @@ dependencies:
     - pip install -U ipdb
     - pip install -U tox
     - pip install -U tox-pyenv
-    - pyenv local $TOX_PY34 $TOX_PY27
+    - pyenv local $TOX_PY35 $TOX_PY27
 
 test:
   override:
